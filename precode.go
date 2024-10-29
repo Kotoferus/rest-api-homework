@@ -50,7 +50,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 func postTask(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +68,11 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "Такая задача уже существует", http.StatusBadRequest)
+		return
+	}
+
 	tasks[task.ID] = task
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -78,7 +83,7 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	task, ok := tasks[id]
 	if !ok {
-		http.Error(w, "Задача не найдена", http.StatusNoContent)
+		http.Error(w, "Задача не найдена", http.StatusBadRequest)
 		return
 	}
 
@@ -90,21 +95,20 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 func delTask(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if _, ok := tasks[id]; !ok {
-		http.Error(w, "Такой задачи не существует", http.StatusNoContent)
+		http.Error(w, "Такой задачи не существует", http.StatusBadRequest)
 		return
 	}
 	delete(tasks, id)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write(resp)
 }
 
 func main() {
